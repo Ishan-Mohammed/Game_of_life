@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Choose Your Purpose</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body, html {
+      height: 100%;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    body {
+      background: url('sign.webp') no-repeat center center/cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 30px;
+      color: white;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 40px;
+      font-family: 'Orbitron', sans-serif;
+      color: #ffd700;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    }
+
+    .option-container {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .option {
+      background-color: rgba(0, 0, 0, 0.6);
+      padding: 25px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.3s;
+      border: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+
+    .option:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+      border-color: #ffd700;
+    }
+
+    .option img {
+      width: 50px;
+      height: 50px;
+    }
+
+    .option span {
+      font-weight: bold;
+    }
+
+    .message-box {
+      margin-top: 30px;
+      font-size: 1.2rem;
+      color: #00ffcc;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px #000;
+    }
+
+    .come-on-btn {
+      margin-top: 25px;
+      padding: 12px 28px;
+      background-color: violet;
+      color: black;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: 0.3s ease-in-out;
+    }
+
+    .come-on-btn:hover {
+      background-color: #da70d6;
+    }
+
+    @media (max-width: 500px) {
+      .option {
+        flex-direction: column;
+        font-size: 1.1rem;
+      }
+
+      .option img {
+        width: 40px;
+        height: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Why do you want to use us ?</h1>
+
+  <div class="option-container">
+    <!-- Study Option -->
+    <div class="option" onclick="selectOption('study')">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" alt="Study Icon" />
+      <span>📚 Study</span>
+    </div>
+
+    <!-- Self Care Option -->
+    <div class="option" onclick="selectOption('selfcare')">
+      <img src="https://cdn-icons-png.flaticon.com/512/3048/3048392.png" alt="Self Care Icon" />
+      <span>🧘‍♂️ Self Care</span>
+    </div>
+  </div>
+
+  <div id="message" class="message-box"></div>
+
+  <button class="come-on-btn" onclick="goToWakeup()">Come on!</button>
+
+  <script>
+    function selectOption(choice) {
+      const message = document.getElementById("message");
+
+      if (choice === "study") {
+        message.textContent = "Ohh ohh... so you are a real affinity to be studious!";
+      } else if (choice === "selfcare") {
+        message.textContent = "Ohh yehh... a great person who loves himself!";
+      }
+    }
+
+    function goToWakeup() {
+      window.location.href = "Wakeup.html";
+    }
+  </script>
+
+</body>
+</html>
+
+

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Daily Task</title>
+  <style>
+    body {
+      background-image: url('sign.webp');
+      background-size: cover;
+      background-position: center;
+      height: 100vh;
+      margin: 0;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+    }
+
+    h1 {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+
+    h3 {
+      font-family: 'Courier New', Courier, monospace;
+      font-style: italic;
+      margin-bottom: 40px;
+    }
+
+    #timer {
+      font-size: 48px;
+      margin-bottom: 30px;
+      font-weight: bold;
+    }
+
+    #completeBtn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    #completeBtn:hover {
+      background-color: #45a049;
+    }
+
+    #points {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 22px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px 15px;
+      border-radius: 12px;
+    }
+
+    #doneBtn {
+      position: absolute;
+      bottom: 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    #doneBtn:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="points">Points: <span id="pointsValue">100</span></div>
+  <h1>Time to do your daily need</h1>
+  <h3>Complete before the timer</h3>
+  <div id="timer">30:00</div>
+  <button id="completeBtn">I have completed ✅</button>
+
+  <!-- Green Done Button -->
+  <a href="zlast.html" id="doneBtn">Done ✅</a>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script>
+    const contractAddress = "0xCe973FDB35178E4bC94323767bbAE8CC45616805";
+    const contractABI = [
+      {
+        "anonymous": false,
+        "inputs": [
+          { "indexed": true, "internalType": "address", "name": "user", "type": "address" },
+          { "indexed": false, "internalType": "uint256", "name": "totalPoints", "type": "uint256" }
+        ],
+        "name": "PointsRewarded",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          { "indexed": true, "internalType": "address", "name": "userAddress", "type": "address" },
+          { "indexed": false, "internalType": "string", "name": "username", "type": "string" },
+          { "indexed": false, "internalType": "string", "name": "email", "type": "string" }
+        ],
+        "name": "UserRegistered",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "_userAddress", "type": "address" }
+        ],
+        "name": "getUser",
+        "outputs": [
+          { "internalType": "string", "name": "", "type": "string" },
+          { "internalType": "string", "name": "", "type": "string" },
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "string", "name": "_username", "type": "string" },
+          { "internalType": "string", "name": "_email", "type": "string" }
+        ],
+        "name": "register",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "rewardOnWakeUp",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "", "type": "address" }
+        ],
+        "name": "users",
+        "outputs": [
+          { "internalType": "string", "name": "username", "type": "string" },
+          { "internalType": "string", "name": "email", "type": "string" },
+          { "internalType": "bool", "name": "exists", "type": "bool" },
+          { "internalType": "uint256", "name": "points", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ];
+
+    let timer;
+    let timeLeft = 30 * 60;
+
+    function updateTimer() {
+      const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+      const seconds = (timeLeft % 60).toString().padStart(2, '0');
+      document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+      if (timeLeft > 0) {
+        timeLeft--;
+      } else {
+        clearInterval(timer);
+      }
+    }
+
+    timer = setInterval(updateTimer, 1000);
+    updateTimer();
+
+    async function rewardOnCompletion() {
+      try {
+        if (!window.ethereum) {
+          alert("Please install MetaMask!");
+          return;
+        }
+
+        await ethereum.request({ method: "eth_requestAccounts" });
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const userAddress = await signer.getAddress();
+        const contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+        const tx = await contract.rewardOnWakeUp();
+        await tx.wait();
+
+        const userData = await contract.getUser(userAddress);
+        const points = userData[2]; // points from getUser
+        document.getElementById('pointsValue').textContent = points.toString();
+
+        clearInterval(timer);
+      } catch (error) {
+        console.error("Transaction failed:", error);
+        alert("Transaction failed or rejected.");
+      }
+    }
+
+    document.getElementById('completeBtn').addEventListener('click', rewardOnCompletion);
+  </script>
+
+  <script src="one.js"></script>
+</body>
+</html>
+

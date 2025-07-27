@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Morning Routine Complete</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Raleway:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Raleway', sans-serif;
+      background-image: url('sign.webp');
+      background-size: cover;
+      background-position: center;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+      color: white;
+    }
+
+    .celebration-box {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 30px 40px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 500px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      animation: pop 1s ease-in-out;
+    }
+
+    .celebration-box h1 {
+      font-family: 'Pacifico', cursive;
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+      color: #FFD700;
+    }
+
+    .celebration-box p {
+      font-size: 1.1rem;
+      font-weight: 400;
+      margin-top: 0;
+      color: #ffffffdd;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Confetti effect canvas */
+    canvas#confetti {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .celebration-box {
+      position: relative;
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+
+  <div class="celebration-box">
+    <h1>Hurrahh! 🎉</h1>
+    <p>You have successfully completed the morning routine.</p>
+    <p>Keep going and stay consistent! 💪</p>
+  </div>
+
+  <script>
+    // Confetti animation
+    const canvas = document.getElementById('confetti');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const confetti = [];
+    const colors = ['#ff0', '#f0f', '#0ff', '#0f0', '#f00', '#00f'];
+
+    for (let i = 0; i < 150; i++) {
+      confetti.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        r: Math.random() * 6 + 4,
+        c: colors[Math.floor(Math.random() * colors.length)],
+        d: Math.random() * 4 + 1
+      });
+    }
+
+    function drawConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      confetti.forEach((c, i) => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2, false);
+        ctx.fillStyle = c.c;
+        ctx.fill();
+        c.y += c.d;
+        if (c.y > canvas.height) {
+          confetti[i].y = -10;
+          confetti[i].x = Math.random() * canvas.width;
+        }
+      });
+      requestAnimationFrame(drawConfetti);
+    }
+
+    drawConfetti();
+
+    // Resize canvas on window resize
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wake Up Game</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: Arial, sans-serif;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    h1 {
+      font-size: 3rem;
+      margin: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    h2 {
+      font-size: 1.5rem;
+      margin: 10px;
+    }
+    #points {
+      font-size: 1.8rem;
+      margin: 10px;
+      background: rgba(0,0,0,0.5);
+      padding: 10px 20px;
+      border-radius: 10px;
+    }
+    #status {
+      font-size: 1rem;
+      margin: 10px;
+      background: rgba(0,0,0,0.3);
+      padding: 5px 15px;
+      border-radius: 5px;
+      min-height: 20px;
+    }
+    input, button {
+      margin: 5px;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+    }
+    input {
+      width: 200px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      min-width: 120px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    button:disabled {
+      background-color: #666;
+      cursor: not-allowed;
+    }
+    .wallet-info {
+      font-size: 0.9rem;
+      background: rgba(0,0,0,0.3);
+      padding: 5px 10px;
+      border-radius: 5px;
+      margin: 5px;
+      word-break: break-all;
+      max-width: 300px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Time to Wake Up</h1>
+  <h2 id="clock"></h2>
+  <div id="points">Points: 100</div>
+  <div id="status">Click "Connect Wallet" to start</div>
+  <div id="wallet-address" class="wallet-info" style="display: none;"></div>
+  
+  <input type="text" id="username" placeholder="Enter your name" />
+  <input type="email" id="email" placeholder="Enter your email" />
+  
+  <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+  <button id="registerBtn" onclick="registerUser()" disabled>Register</button>
+  <button id="wakeUpBtn" onclick="addPoints()" disabled>I woke up</button>
+  <button onclick="goToNextTask()">Next Task</button>
+
+  <script>
+    const contractAddress = "0xCe973FDB35178E4bC94323767bbAE8CC45616805";
+    const contractABI = [
+      {
+        "anonymous": false,
+        "inputs": [
+          { "indexed": true, "internalType": "address", "name": "user", "type": "address" },
+          { "indexed": false, "internalType": "uint256", "name": "totalPoints", "type": "uint256" }
+        ],
+        "name": "PointsRewarded",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          { "indexed": true, "internalType": "address", "name": "userAddress", "type": "address" },
+          { "indexed": false, "internalType": "string", "name": "username", "type": "string" },
+          { "indexed": false, "internalType": "string", "name": "email", "type": "string" }
+        ],
+        "name": "UserRegistered",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "_userAddress", "type": "address" }
+        ],
+        "name": "getUser",
+        "outputs": [
+          { "internalType": "string", "name": "", "type": "string" },
+          { "internalType": "string", "name": "", "type": "string" },
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "string", "name": "_username", "type": "string" },
+          { "internalType": "string", "name": "_email", "type": "string" }
+        ],
+        "name": "register",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "rewardOnWakeUp",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "", "type": "address" }
+        ],
+        "name": "users",
+        "outputs": [
+          { "internalType": "string", "name": "username", "type": "string" },
+          { "internalType": "string", "name": "email", "type": "string" },
+          { "internalType": "bool", "name": "exists", "type": "bool" },
+          { "internalType": "uint256", "name": "points", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ];
+
+    let provider = null;
+    let signer = null;
+    let userAddress = null;
+    let contract = null;
+    let points = 100;
+    let pointsAdded = false;
+
+    const wakeTime = "06:30";
+    function formatTime(time24) {
+      const [hour, minute] = time24.split(":").map(Number);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const hour12 = hour % 12 || 12;
+      return `${hour12.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} ${ampm}`;
+    }
+    document.getElementById("clock").innerText = formatTime(wakeTime);
+
+    function isValidAddress(address) {
+      try {
+        return ethers.utils.isAddress(address);
+      } catch {
+        return false;
+      }
+    }
+
+    async function connectWallet() {
+      try {
+        updateStatus("Connecting to MetaMask...");
+        if (typeof window.ethereum === "undefined") {
+          throw new Error("MetaMask is not installed. Please install MetaMask extension.");
+        }
+
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        userAddress = await signer.getAddress();
+
+        const network = await provider.getNetwork();
+        console.log("Connected to network:", network.name, "Chain ID:", network.chainId);
+
+        const checksumAddress = ethers.utils.getAddress(contractAddress);
+        contract = new ethers.Contract(checksumAddress, contractABI, signer);
+
+        document.getElementById("wallet-address").style.display = "block";
+        document.getElementById("wallet-address").textContent = `Connected: ${userAddress.slice(0, 6)}...${userAddress.slice(-4)} (${network.name})`;
+        document.getElementById("connectBtn").textContent = "Connected ✓";
+        document.getElementById("connectBtn").disabled = true;
+        document.getElementById("registerBtn").disabled = false;
+        document.getElementById("wakeUpBtn").disabled = false;
+
+        updateStatus("Wallet connected successfully!");
+        await loadUserPoints();
+
+      } catch (error) {
+        console.error("Connection error:", error);
+        updateStatus(`Connection failed: ${error.message}`);
+      }
+    }
+
+    async function loadUserPoints() {
+      try {
+        if (!contract || !userAddress) return;
+
+        updateStatus("Loading user data...");
+        const code = await provider.getCode(contractAddress);
+        if (code === '0x') {
+          throw new Error("No contract deployed at this address");
+        }
+
+        const userData = await contract.getUser(userAddress);
+        if (userData[0] && userData[0] !== "") {
+          points = userData[2].toNumber();
+          document.getElementById("username").value = userData[0];
+          document.getElementById("email").value = userData[1];
+          updateStatus("User data loaded from blockchain");
+        } else {
+          points = 100;
+          updateStatus("New user - starting with 100 points");
+        }
+
+        document.getElementById("points").textContent = `Points: ${points}`;
+      } catch (error) {
+        console.error("Error loading user data:", error);
+        points = 100;
+        document.getElementById("points").textContent = `Points: ${points}`;
+
+        if (error.message.includes("No contract deployed")) {
+          updateStatus("⚠️ Contract not deployed at this address - using demo mode");
+        } else if (error.message.includes("call revert exception")) {
+          updateStatus("⚠️ Contract call failed - using demo mode");
+        } else {
+          updateStatus("⚠️ Could not load user data - using demo mode");
+        }
+      }
+    }
+
+    async function addPoints() {
+      if (pointsAdded) {
+        updateStatus("Points already added today!");
+        return;
+      }
+
+      if (!contract || !userAddress) {
+        updateStatus("Please connect your wallet first");
+        return;
+      }
+
+      try {
+        updateStatus("Processing wake up reward...");
+        document.getElementById("wakeUpBtn").disabled = true;
+        const code = await provider.getCode(contractAddress);
+        if (code === '0x') {
+          throw new Error("Contract not deployed - running in demo mode");
+        }
+
+        const tx = await contract.rewardOnWakeUp();
+        updateStatus("Transaction sent, waiting for confirmation...");
+        await tx.wait();
+        updateStatus("Transaction confirmed!");
+
+        const targetPoints = points + 10;
+        const animatePoints = () => {
+          if (points < targetPoints) {
+            points++;
+            document.getElementById("points").textContent = `Points: ${points}`;
+            setTimeout(animatePoints, 50);
+          } else {
+            updateStatus("Wake up reward added! +10 points");
+            pointsAdded = true;
+          }
+        };
+        animatePoints();
+
+      } catch (error) {
+        console.error("Wake up reward error:", error);
+        document.getElementById("wakeUpBtn").disabled = false;
+
+        if (error.message.includes("Contract not deployed")) {
+          updateStatus("Demo mode: Adding points locally...");
+          const targetPoints = points + 10;
+          const animatePoints = () => {
+            if (points < targetPoints) {
+              points++;
+              document.getElementById("points").textContent = `Points: ${points}`;
+              setTimeout(animatePoints, 50);
+            } else {
+              updateStatus("Demo: Wake up reward added! +10 points");
+              pointsAdded = true;
+              document.getElementById("wakeUpBtn").disabled = true;
+            }
+          };
+          animatePoints();
+        } else {
+          updateStatus(`Transaction failed: ${error.message}`);
+        }
+      }
+    }
+
+    async function registerUser() {
+      const username = document.getElementById("username").value.trim();
+      const email = document.getElementById("email").value.trim();
+
+      if (!username || !email) {
+        updateStatus("Please fill in both username and email");
+        return;
+      }
+
+      if (!contract || !userAddress) {
+        updateStatus("Please connect your wallet first");
+        return;
+      }
+
+      try {
+        updateStatus("Registering user...");
+        document.getElementById("registerBtn").disabled = true;
+        const code = await provider.getCode(contractAddress);
+        if (code === '0x') {
+          throw new Error("Contract not deployed - running in demo mode");
+        }
+
+        const tx = await contract.register(username, email);
+        updateStatus("Registration transaction sent, waiting for confirmation...");
+        await tx.wait();
+        updateStatus("Registration successful!");
+
+      } catch (error) {
+        console.error("Registration error:", error);
+        document.getElementById("registerBtn").disabled = false;
+
+        if (error.message.includes("Contract not deployed")) {
+          updateStatus("Demo mode: Registration saved locally");
+          document.getElementById("registerBtn").disabled = true;
+          document.getElementById("registerBtn").textContent = "Registered ✓";
+        } else {
+          updateStatus(`Registration failed: ${error.message}`);
+        }
+      }
+    }
+
+    function updateStatus(message) {
+      document.getElementById("status").textContent = message;
+      console.log("Status:", message);
+    }
+
+    function goToNextTask() {
+      window.location.href = "timer.html";
+    }
+
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', function (accounts) {
+        location.reload();
+      });
+      window.ethereum.on('chainChanged', function (chainId) {
+        location.reload();
+      });
+    }
+
+    window.addEventListener('load', () => {
+      updateStatus("Ready to connect wallet");
+    });
+  </script>
+</body>
+</html>
+
