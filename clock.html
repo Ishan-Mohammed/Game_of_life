@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sleep Schedule</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body, html {
+      height: 100%;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    body {
+      background: url('sign.webp') no-repeat center center/cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 30px;
+      color: white;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 30px;
+      font-family: 'Orbitron', sans-serif;
+      color: red;
+    }
+
+    .form-container {
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 30px 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    label {
+      font-size: 1.3rem;
+      display: block;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+
+    .time-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .am-pm {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #00e6e6;
+    }
+
+    input[type="time"] {
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 10px;
+      width: 250px;
+    }
+
+    select {
+      padding: 10px;
+      font-size: 1.1rem;
+      border-radius: 10px;
+      width: 250px;
+      border: none;
+      margin-top: 10px;
+    }
+
+    .submit-btn {
+      margin-top: 40px;
+      padding: 12px 25px;
+      background-color: #2196f3;
+      border: none;
+      color: white;
+      font-size: 1.1rem;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .submit-btn:hover {
+      background-color: #0d78c4;
+    }
+
+    .personality-section {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+    }
+
+    .personality-section label {
+      font-size: 1.4rem;
+      color: #ffd700;
+    }
+
+    .lets-go-btn {
+      margin-top: 30px;
+      padding: 14px 30px;
+      font-size: 1.3rem;
+      background-color: crimson;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .lets-go-btn:hover {
+      background-color: #c10035;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>HOW IS YOUR SLEEP SCHEDULE ?</h1>
+
+  <div class="form-container">
+    <!-- Replace the bottom part inside form like this -->
+
+<form>
+  <label for="wake-time">Time You Wake Up</label>
+  <div class="time-row">
+    <input type="time" id="wake-time" name="wake-time" required>
+    <span class="am-pm">AM</span>
+  </div>
+
+  <label for="sleep-time">Time You Sleep</label>
+  <div class="time-row">
+    <input type="time" id="sleep-time" name="sleep-time" required>
+    <span class="am-pm">PM</span>
+  </div>
+
+  <!-- Personality Section -->
+  <div class="personality-section">
+    <label for="personality">What type of person you are?</label>
+    <select id="personality" name="personality" required>
+      <option value="">Select an option</option>
+      <option value="early">🌅 Early Bird</option>
+      <option value="night">🌙 Night Owl</option>
+    </select>
+  </div>
+
+  <!-- Fixed Let's Go Button -->
+  <button type="button" class="lets-go-btn" onclick="window.location.href='reason.html'">Let's Go 🚀</button>
+</form>
+
+
+</body>
+</html>
+
+
+
+
